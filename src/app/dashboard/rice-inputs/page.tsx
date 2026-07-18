@@ -40,6 +40,7 @@ export default function RiceInputsPage() {
     customer: null as Customer | null,
     rice_type: "",
     weight: "",
+    bag_count: "",
     moisture_percentage: "",
     impurity_percentage: "",
     description: "",
@@ -51,6 +52,7 @@ export default function RiceInputsPage() {
       customer: null,
       rice_type: "",
       weight: "",
+      bag_count: "",
       moisture_percentage: "",
       impurity_percentage: "",
       description: "",
@@ -70,6 +72,7 @@ export default function RiceInputsPage() {
       customer: item.customer_name ? { id: item.customer_id, name: item.customer_name, phone: "", customer_type: "farmer" } : null,
       rice_type: String(item.rice_type_id || ""),
       weight: String(item.weight_kg),
+      bag_count: String(item.bag_count || ""),
       moisture_percentage: "",
       impurity_percentage: "",
       description: item.description || "",
@@ -95,6 +98,7 @@ export default function RiceInputsPage() {
     const payload: Record<string, unknown> = {
       rice_type_id: formData.rice_type ? parseInt(formData.rice_type) : undefined,
       weight_kg: parseInt(formData.weight),
+      bag_count: formData.bag_count ? parseInt(formData.bag_count) : undefined,
       input_date: formData.input_date,
       description: formData.description || undefined,
     };
@@ -175,7 +179,11 @@ export default function RiceInputsPage() {
               </FormField>
             </div>
             <FormField label="تعداد کیسه">
-              <Input type="number" value="1" disabled />
+              <Input
+                type="number"
+                value={formData.bag_count}
+                onChange={(e) => setFormData({ ...formData, bag_count: e.target.value })}
+              />
             </FormField>
             <FormField label="تاریخ">
               <Input
