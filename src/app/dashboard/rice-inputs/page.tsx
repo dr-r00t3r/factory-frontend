@@ -36,6 +36,7 @@ export default function RiceInputsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RiceInput | null>(null);
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     customer: null as Customer | null,
     rice_type: "",
@@ -59,10 +60,12 @@ export default function RiceInputsPage() {
       input_date: new Date().toISOString().split("T")[0],
     });
     setSelectedItem(null);
+    setFormError("");
   };
 
   const openCreate = () => {
     resetForm();
+    setFormError("");
     setDialogOpen(true);
   };
 
@@ -95,9 +98,14 @@ export default function RiceInputsPage() {
   };
 
   const handleSubmit = () => {
+    if (!formData.weight && !formData.bag_count) {
+      setFormError("حداقل یکی از فیلدهای وزن یا تعداد کیسه را پر کنید");
+      return;
+    }
+    setFormError("");
     const payload: Record<string, unknown> = {
       rice_type_id: formData.rice_type ? parseInt(formData.rice_type) : undefined,
-      weight_kg: parseInt(formData.weight),
+      weight_kg: formData.weight ? parseFloat(formData.weight) : undefined,
       bag_count: formData.bag_count ? parseInt(formData.bag_count) : undefined,
       input_date: formData.input_date,
       description: formData.description || undefined,
@@ -170,7 +178,7 @@ export default function RiceInputsPage() {
                   onChange={(v) => setFormData({ ...formData, rice_type: v })}
                 />
               </FormField>
-              <FormField label="وزن (کیلو)" required>
+              <FormField label="وزن (کیلو)">
                 <Input
                   type="number"
                   value={formData.weight}
@@ -185,6 +193,7 @@ export default function RiceInputsPage() {
                 onChange={(e) => setFormData({ ...formData, bag_count: e.target.value })}
               />
             </FormField>
+            {formError && <p className="text-sm text-red-500">{formError}</p>}
             <FormField label="تاریخ">
               <Input
                 type="date"

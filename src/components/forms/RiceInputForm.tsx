@@ -14,14 +14,18 @@ import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import type { Customer } from "@/types";
 
-const schema = z.object({
-  customer_id: z.number({ required_error: "مشتری را انتخاب کنید" }),
-  rice_type_id: z.string({ required_error: "نوع شالی را انتخاب کنید" }),
-  bag_count: z.string().min(1, "تعداد کیسه را وارد کنید"),
-  weight_kg: z.string().min(1, "وزن را وارد کنید"),
-  input_date: z.string().min(1, "تاریخ را وارد کنید"),
-  description: z.string().optional(),
-});
+const schema = z
+  .object({
+    customer_id: z.number({ required_error: "مشتری را انتخاب کنید" }),
+    rice_type_id: z.string({ required_error: "نوع شالی را انتخاب کنید" }),
+    bag_count: z.string().optional(),
+    weight_kg: z.string().optional(),
+    input_date: z.string().min(1, "تاریخ را وارد کنید"),
+    description: z.string().optional(),
+  })
+  .refine((data) => data.bag_count || data.weight_kg, {
+    message: "حداقل یکی از فیلدهای تعداد کیسه یا وزن را پر کنید",
+  });
 
 type FormData = z.infer<typeof schema>;
 
@@ -67,13 +71,16 @@ export function RiceInputForm({ initialData, onSubmit, isLoading }: RiceInputFor
       </FormField>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="تعداد کیسه" error={errors.bag_count?.message} required>
+        <FormField label="تعداد کیسه" error={errors.bag_count?.message}>
           <Input type="number" {...register("bag_count")} />
         </FormField>
-        <FormField label="وزن (کیلوگرم)" error={errors.weight_kg?.message} required>
+        <FormField label="وزن (کیلوگرم)" error={errors.weight_kg?.message}>
           <Input type="number" step="0.1" {...register("weight_kg")} />
         </FormField>
       </div>
+      {errors.root && (
+        <p className="text-sm text-red-500">{errors.root.message}</p>
+      )}
 
       <RiceTypeSelect
         label="نوع شالی"

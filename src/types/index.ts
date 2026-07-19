@@ -44,8 +44,8 @@ export interface RiceInput {
   customer_id: number;
   customer_name?: string;
   input_date: string;
-  bag_count: number;
-  weight_kg: number;
+  bag_count?: number;
+  weight_kg?: number;
   rice_type_id?: number;
   rice_type_name?: string;
   photo?: unknown;
