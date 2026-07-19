@@ -235,7 +235,7 @@ export function useUpdateMutation(url: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
-      const response = await apiClient.put(`${url}${id}`, data);
+      const response = await apiClient.put(`${url}${id}/`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -248,7 +248,7 @@ export function useDeleteMutation(url: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      await apiClient.delete(`${url}${id}`);
+      await apiClient.delete(`${url}${id}/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [url] });
