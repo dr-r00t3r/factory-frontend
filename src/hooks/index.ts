@@ -39,9 +39,12 @@ function paginatedQuery<T>(url: string, filters?: Record<string, unknown>) {
         });
       }
       const queryString = params.toString();
-      const { data } = await apiClient.get<PaginatedResponse<T>>(
+      const { data } = await apiClient.get<PaginatedResponse<T> | T[]>(
         queryString ? `${url}?${queryString}` : url
       );
+      if (Array.isArray(data)) {
+        return { count: data.length, next: null, previous: null, results: data } as PaginatedResponse<T>;
+      }
       return data;
     },
   };
