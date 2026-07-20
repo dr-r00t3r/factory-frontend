@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   const todayInputs = riceInputsData?.results?.length || 0;
   const pendingProcesses = processesData?.results?.filter(
-    (p) => p.status !== "COMPLETED"
+    (p) => !p.is_completed
   ).length || 0;
 
   const inventoryChartData = inventory?.map((item) => ({

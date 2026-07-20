@@ -12,6 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import { CustomerSearch } from "@/components/shared/CustomerSearch";
 import { usePurchases, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS, ProductType } from "@/lib/constants";
@@ -34,10 +36,10 @@ export default function PurchasesNimdonePage() {
   const [selectedItem, setSelectedItem] = useState<Purchase | null>(null);
   const [formData, setFormData] = useState({
     customer: null as Customer | null, weight: "", price_per_unit: "",
-    purchase_date: new Date().toISOString().split("T")[0], description: "",
+    purchase_date: getTodayJalaliIso(), description: "",
   });
   const totalAmount = parseFloat(formData.weight || "0") * parseFloat(formData.price_per_unit || "0");
-  const resetForm = () => { setFormData({ customer: null, weight: "", price_per_unit: "", purchase_date: new Date().toISOString().split("T")[0], description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ customer: null, weight: "", price_per_unit: "", purchase_date: getTodayJalaliIso(), description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Purchase) => {
     setSelectedItem(item);
@@ -92,7 +94,7 @@ export default function PurchasesNimdonePage() {
               <span className="text-sm text-muted-foreground">مبلغ کل: </span>
               <span className="text-lg font-bold">{toPersianCurrency(totalAmount)}</span>
             </div>
-            <FormField label="تاریخ خرید"><Input type="date" value={formData.purchase_date} onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })} /></FormField>
+            <PersianDatePicker label="تاریخ خرید" value={formData.purchase_date} onChange={(v) => setFormData({ ...formData, purchase_date: v })} />
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>
           <DialogFooter>

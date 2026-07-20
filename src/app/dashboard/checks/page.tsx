@@ -13,7 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { CustomerSearch } from "@/components/shared/CustomerSearch";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -50,7 +52,7 @@ export default function CheckPaymentsPage() {
     check_number: "", bank_name: "", amount: "",
     issue_date: "", due_date: "", status: "PENDING", description: "",
   });
-  const resetForm = () => { setFormData({ customer: null, check_number: "", bank_name: "", amount: "", issue_date: new Date().toISOString().split("T")[0], due_date: "", status: "PENDING", description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ customer: null, check_number: "", bank_name: "", amount: "", issue_date: getTodayJalaliIso(), due_date: "", status: "PENDING", description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: CheckPayment) => {
     setSelectedItem(item);
@@ -158,8 +160,8 @@ export default function CheckPaymentsPage() {
             </div>
             <FormField label="مبلغ (ریال)" required><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} /></FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="تاریخ صدور"><Input type="date" value={formData.issue_date} onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })} /></FormField>
-              <FormField label="سررسید"><Input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} /></FormField>
+              <PersianDatePicker label="تاریخ صدور" value={formData.issue_date} onChange={(v) => setFormData({ ...formData, issue_date: v })} />
+              <PersianDatePicker label="سررسید" value={formData.due_date} onChange={(v) => setFormData({ ...formData, due_date: v })} />
             </div>
             <FormField label="وضعیت" required>
               <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>

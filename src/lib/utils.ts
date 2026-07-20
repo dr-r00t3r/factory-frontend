@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatJalaliDate } from "@/lib/jalali";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -23,12 +24,12 @@ export function toPersianCurrency(amount: number | undefined | null): string {
 export function formatPersianDate(dateStr: string | undefined | null): string {
   if (!dateStr) return "-";
   try {
+    if (dateStr.includes("-") && dateStr.split("-")[0].length === 4) {
+      return formatJalaliDate(dateStr);
+    }
     const date = new Date(dateStr);
-    return date.toLocaleDateString("fa-IR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    const iso = date.toISOString().split("T")[0];
+    return formatJalaliDate(iso);
   } catch {
     return dateStr;
   }
@@ -38,13 +39,10 @@ export function formatPersianDateTime(dateStr: string | undefined | null): strin
   if (!dateStr) return "-";
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("fa-IR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const iso = date.toISOString().split("T")[0];
+    const jalaliPart = formatJalaliDate(iso);
+    const timePart = date.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+    return `${jalaliPart} - ${timePart}`;
   } catch {
     return dateStr;
   }

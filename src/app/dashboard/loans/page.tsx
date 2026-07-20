@@ -13,6 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -34,10 +36,10 @@ export default function LoansPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Loan | null>(null);
   const [formData, setFormData] = useState({
-    member: "", amount: "", interest_rate: "", issue_date: new Date().toISOString().split("T")[0],
+    member: "", amount: "", interest_rate: "", issue_date: getTodayJalaliIso(),
     due_date: "", status: "ACTIVE", description: "",
   });
-  const resetForm = () => { setFormData({ member: "", amount: "", interest_rate: "", issue_date: new Date().toISOString().split("T")[0], due_date: "", status: "ACTIVE", description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ member: "", amount: "", interest_rate: "", issue_date: getTodayJalaliIso(), due_date: "", status: "ACTIVE", description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Loan) => {
     setSelectedItem(item);
@@ -104,8 +106,8 @@ export default function LoansPage() {
               <FormField label="نرخ سود (%)"><Input type="number" value={formData.interest_rate} onChange={(e) => setFormData({ ...formData, interest_rate: e.target.value })} /></FormField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="تاریخ"><Input type="date" value={formData.issue_date} onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })} /></FormField>
-              <FormField label="سررسید"><Input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} /></FormField>
+              <PersianDatePicker label="تاریخ" value={formData.issue_date} onChange={(v) => setFormData({ ...formData, issue_date: v })} />
+              <PersianDatePicker label="سررسید" value={formData.due_date} onChange={(v) => setFormData({ ...formData, due_date: v })} />
             </div>
             <FormField label="وضعیت" required>
               <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>

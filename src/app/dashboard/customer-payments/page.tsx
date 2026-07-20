@@ -20,6 +20,8 @@ import {
 import apiClient from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianCurrency, formatPersianDate } from "@/lib/utils";
+import { getTodayJalaliIso } from "@/lib/jalali";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { Plus } from "lucide-react";
 import type { CustomerPayment, Customer } from "@/types";
 
@@ -78,10 +80,10 @@ export default function CustomerPaymentsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CustomerPayment | null>(null);
   const [formData, setFormData] = useState({
-    customer: null as Customer | null, amount: "", payment_date: new Date().toISOString().split("T")[0],
+    customer: null as Customer | null, amount: "", payment_date: getTodayJalaliIso(),
     payment_type: "CASH", description: "",
   });
-  const resetForm = () => { setFormData({ customer: null, amount: "", payment_date: new Date().toISOString().split("T")[0], payment_type: "CASH", description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ customer: null, amount: "", payment_date: getTodayJalaliIso(), payment_type: "CASH", description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: CustomerPayment) => {
     setSelectedItem(item);
@@ -138,7 +140,7 @@ export default function CustomerPaymentsPage() {
                   </SelectContent>
                 </Select>
               </FormField>
-              <FormField label="تاریخ"><Input type="date" value={formData.payment_date} onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })} /></FormField>
+              <PersianDatePicker label="تاریخ" value={formData.payment_date} onChange={(v) => setFormData({ ...formData, payment_date: v })} />
             </div>
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>

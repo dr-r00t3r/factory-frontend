@@ -53,46 +53,65 @@ export interface RiceInput {
   created_at?: string;
 }
 
+export interface ProcessInput {
+  id: number;
+  process_id: number;
+  rice_input_id: number;
+  customer_id: number;
+  customer_name?: string;
+  rice_input_date?: string;
+  bag_count: number;
+  created_at?: string;
+}
+
 export interface Process {
   id: number;
-  customer_id: number;
-  rice_input_id: number;
-  fer1_number?: number;
-  fer2_number?: number;
-  fer1_bag_count?: number;
-  fer2_bag_count?: number;
-  is_processed: boolean;
+  process_number: number;
+  capacity_bag_count: number;
+  hours_work?: number;
+  actual_hours_work?: number;
+  fill_percentage_required: number;
+  filled_bag_count: number;
+  fill_percentage: number;
+  is_started: boolean;
+  is_completed: boolean;
   process_date?: string;
-  created_at?: string;
-  // joined fields
-  customer_name?: string;
-  rice_type_name?: string;
-  input_weight?: number;
-  status?: string;
-  start_date?: string;
-  end_date?: string;
-  kiln_number?: number;
   description?: string;
+  inputs: ProcessInput[];
+  created_at?: string;
 }
 
 export interface Output {
   id: number;
   customer_id: number;
   process_id?: number;
+  rice_type_id?: number;
+  rice_type_name?: string;
   output_date: string;
   sabos_narm_weight: number;
-  sabos_narm_total: number;
   sabos_do_weight: number;
   nimdone_weight: number;
-  nimdone_total: number;
   done_weight: number;
-  done_total: number;
+  sabos_narm_price?: number;
+  sabos_narm_total?: number;
+  sabos_do_price?: number;
+  sabos_do_total?: number;
+  nimdone_price?: number;
+  nimdone_total?: number;
+  done_price?: number;
+  done_total?: number;
   created_at?: string;
   customer_name?: string;
-  process_info?: string;
+}
+
+export interface DailyPrice {
+  id: number;
+  product_type: string;
+  rice_type_id?: number;
   rice_type_name?: string;
-  weight?: number;
-  description?: string;
+  price_per_kg: number;
+  effective_date: string;
+  created_at?: string;
 }
 
 export interface CustomerPayment {

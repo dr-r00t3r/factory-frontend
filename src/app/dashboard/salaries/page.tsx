@@ -18,6 +18,8 @@ import {
 import { useSalaries, useMembers, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, toPersianCurrency, formatPersianDate } from "@/lib/utils";
+import { getTodayJalaliIso, getTodayJalaliParts } from "@/lib/jalali";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { Plus } from "lucide-react";
 import type { Salary } from "@/types";
 
@@ -41,10 +43,10 @@ export default function SalariesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Salary | null>(null);
   const [formData, setFormData] = useState({
-    member: "", amount: "", month: "1", year: String(new Date().getFullYear()),
-    paid_date: new Date().toISOString().split("T")[0], description: "",
+    member: "", amount: "", month: "1", year: String(getTodayJalaliParts().year),
+    paid_date: getTodayJalaliIso(), description: "",
   });
-  const resetForm = () => { setFormData({ member: "", amount: "", month: "1", year: String(new Date().getFullYear()), paid_date: new Date().toISOString().split("T")[0], description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ member: "", amount: "", month: "1", year: String(getTodayJalaliParts().year), paid_date: getTodayJalaliIso(), description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Salary) => {
     setSelectedItem(item);
@@ -124,7 +126,7 @@ export default function SalariesPage() {
                 </Select>
               </FormField>
               <FormField label="سال" required><Input type="number" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} /></FormField>
-              <FormField label="تاریخ پرداخت"><Input type="date" value={formData.paid_date} onChange={(e) => setFormData({ ...formData, paid_date: e.target.value })} /></FormField>
+              <PersianDatePicker label="تاریخ پرداخت" value={formData.paid_date} onChange={(v) => setFormData({ ...formData, paid_date: v })} />
             </div>
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>

@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/shared/FormField";
 import { CustomerSearch } from "@/components/shared/CustomerSearch";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import { RiceTypeSelect } from "@/components/shared/RiceTypeSelect";
 import { useRiceInputs, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
@@ -45,7 +47,7 @@ export default function RiceInputsPage() {
     moisture_percentage: "",
     impurity_percentage: "",
     description: "",
-    input_date: new Date().toISOString().split("T")[0],
+    input_date: getTodayJalaliIso(),
   });
 
   const resetForm = () => {
@@ -57,7 +59,7 @@ export default function RiceInputsPage() {
       moisture_percentage: "",
       impurity_percentage: "",
       description: "",
-      input_date: new Date().toISOString().split("T")[0],
+      input_date: getTodayJalaliIso(),
     });
     setSelectedItem(null);
     setFormError("");
@@ -127,9 +129,10 @@ export default function RiceInputsPage() {
   const columns: Column<RiceInput>[] = [
     { key: "customer_name", label: "مشتری", render: (item) => item.customer_name || "-" },
     { key: "input_date", label: "تاریخ", render: (item) => formatPersianDate(item.input_date) },
-    { key: "weight_kg", label: "وزن (کیلو)", render: (item) => toPersianNumber(item.weight_kg) },
+    { key: "weight_kg", label: "وزن (کیلو)", render: (item) => item.weight_kg != null ? toPersianNumber(item.weight_kg) : "-" },
+    { key: "bag_count", label: "تعداد کیسه", render: (item) => item.bag_count != null ? toPersianNumber(item.bag_count) : "-" },
     { key: "rice_type_name", label: "نوع شالی", render: (item) => item.rice_type_name || "-" },
-    { key: "description", label: "توضیحات", render: (item) => item.description || "-" },
+    { key: "created_at", label: "تاریخ ثبت", render: (item) => formatPersianDate(item.created_at) },
   ];
 
   if (isLoading) return <LoadingSpinner className="min-h-[60vh]" size="lg" />;
@@ -194,13 +197,11 @@ export default function RiceInputsPage() {
               />
             </FormField>
             {formError && <p className="text-sm text-red-500">{formError}</p>}
-            <FormField label="تاریخ">
-              <Input
-                type="date"
-                value={formData.input_date}
-                onChange={(e) => setFormData({ ...formData, input_date: e.target.value })}
-              />
-            </FormField>
+            <PersianDatePicker
+              label="تاریخ"
+              value={formData.input_date}
+              onChange={(v) => setFormData({ ...formData, input_date: v })}
+            />
             <FormField label="توضیحات">
               <Textarea
                 value={formData.description}

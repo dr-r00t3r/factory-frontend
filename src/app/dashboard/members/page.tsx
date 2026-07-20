@@ -20,6 +20,8 @@ import { Label } from "@/components/ui/label";
 import { useMembers, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, toPersianCurrency, formatPersianDate } from "@/lib/utils";
+import { getTodayJalaliIso } from "@/lib/jalali";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { Plus } from "lucide-react";
 import type { Member } from "@/types";
 
@@ -34,9 +36,9 @@ export default function MembersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Member | null>(null);
   const [formData, setFormData] = useState({
-    name: "", role: "", phone: "", salary: "", is_active: true, joined_date: new Date().toISOString().split("T")[0],
+    name: "", role: "", phone: "", salary: "", is_active: true, joined_date: getTodayJalaliIso(),
   });
-  const resetForm = () => { setFormData({ name: "", role: "", phone: "", salary: "", is_active: true, joined_date: new Date().toISOString().split("T")[0] }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ name: "", role: "", phone: "", salary: "", is_active: true, joined_date: getTodayJalaliIso() }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Member) => {
     setSelectedItem(item);
@@ -86,7 +88,7 @@ export default function MembersPage() {
               <FormField label="تلفن"><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} /></FormField>
               <FormField label="حقوق"><Input type="number" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: e.target.value })} /></FormField>
             </div>
-            <FormField label="تاریخ عضویت"><Input type="date" value={formData.joined_date} onChange={(e) => setFormData({ ...formData, joined_date: e.target.value })} /></FormField>
+            <PersianDatePicker label="تاریخ عضویت" value={formData.joined_date} onChange={(v) => setFormData({ ...formData, joined_date: v })} />
             <div className="flex items-center gap-3">
               <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} />
               <Label>فعال</Label>

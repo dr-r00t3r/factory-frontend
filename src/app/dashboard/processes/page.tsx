@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -16,138 +17,128 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/shared/FormField";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useProcesses, useCustomers, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
+import { useProcesses, useCreateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, formatPersianDate } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import type { Process } from "@/types";
 
-const statusLabels: Record<string, { label: string; variant: "warning" | "info" | "success" }> = {
-  PENDING: { label: "در انتظار", variant: "warning" },
-  IN_PROGRESS: { label: "در حال انجام", variant: "info" },
-  COMPLETED: { label: "تکمیل شده", variant: "success" },
+const statusConfig = {
+  not_started: { label: "شروع نشده", variant: "secondary" as const },
+  in_progress: { label: "در حال انجام", variant: "warning" as const },
+  completed: { label: "تکمیل شده", variant: "success" as const },
 };
 
-export default function ProcessesPage() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const { data, isLoading } = useProcesses({ page, search, page_size: 10 });
-  const { data: customers } = useCustomers({ page_size: 200 });
-  const createMutation = useCreateMutation(API_ENDPOINTS.PROCESSES);
-  const updateMutation = useUpdateMutation(API_ENDPOINTS.PROCESSES);
-  const deleteMutation = useDeleteMutation(API_ENDPOINTS.PROCESSES);
+function getProcessStatus(p: Process) {
+  if (p.is_completed) return statusConfig.completed;
+  if (p.is_started) return statusConfig.in_progress;
+  return statusConfig.not_started;
+}
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Process | null>(null);
-  const [formData, setFormData] = useState({
-    rice_input: "",
-    kiln_number: "",
-    start_date: new Date().toISOString().split("T")[0],
-    end_date: "",
-    status: "PENDING",
+export default function ProcessesPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useProcesses({ page, page_size: 20 });
+
+  const createMutation = useCreateMutation(API_ENDPOINTS.PROCESSES);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    process_number: "",
+    capacity_bag_count: "",
+    hours_work: "",
+    fill_percentage_required: "95",
     description: "",
   });
 
-  const resetForm = () => {
-    setFormData({
-      rice_input: "",
-      kiln_number: "",
-      start_date: new Date().toISOString().split("T")[0],
-      end_date: "",
-      status: "PENDING",
-      description: "",
-    });
-    setSelectedItem(null);
-  };
-
-  const openCreate = () => {
-    resetForm();
-    setDialogOpen(true);
-  };
-
-  const openEdit = (item: Process) => {
-    setSelectedItem(item);
-    setFormData({
-      rice_input: String(item.rice_input_id),
-      kiln_number: item.kiln_number ? String(item.kiln_number) : "",
-      start_date: item.start_date?.split("T")[0] || "",
-      end_date: item.end_date?.split("T")[0] || "",
-      status: item.status || "",
-      description: item.description || "",
-    });
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (item: Process) => {
-    setSelectedItem(item);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (selectedItem) {
-      deleteMutation.mutate(selectedItem.id, {
-        onSuccess: () => setDeleteDialogOpen(false),
-      });
-    }
-  };
-
-  const handleSubmit = () => {
-    const payload: Record<string, unknown> = {
-      rice_input_id: parseInt(formData.rice_input),
-      status: formData.status,
-      start_date: formData.start_date,
-      description: formData.description || undefined,
-    };
-    if (formData.kiln_number) payload.kiln_number = parseInt(formData.kiln_number);
-    if (formData.end_date) payload.end_date = formData.end_date;
-
-    if (selectedItem) {
-      updateMutation.mutate(
-        { id: selectedItem.id, data: payload },
-        { onSuccess: () => { setDialogOpen(false); resetForm(); } }
-      );
-    } else {
-      createMutation.mutate(payload, {
-        onSuccess: () => { setDialogOpen(false); resetForm(); }
-      });
-    }
+  const handleCreate = () => {
+    createMutation.mutate(
+      {
+        process_number: parseInt(createForm.process_number),
+        capacity_bag_count: parseFloat(createForm.capacity_bag_count),
+        hours_work: createForm.hours_work ? parseFloat(createForm.hours_work) : undefined,
+        fill_percentage_required: parseFloat(createForm.fill_percentage_required),
+        description: createForm.description || undefined,
+      },
+      {
+        onSuccess: (created) => {
+          setCreateOpen(false);
+          setCreateForm({
+            process_number: "",
+            capacity_bag_count: "",
+            hours_work: "",
+            fill_percentage_required: "95",
+            description: "",
+          });
+          router.push(`/dashboard/processes/${created.id}`);
+        },
+      }
+    );
   };
 
   const columns: Column<Process>[] = [
-    { key: "customer_name", label: "مشتری", render: (item) => item.customer_name || "-" },
-    { key: "rice_type_name", label: "نوع", render: (item) => item.rice_type_name || "-" },
-    { key: "input_weight", label: "وزن ورودی", render: (item) => toPersianNumber(item.input_weight) },
-    { key: "kiln_number", label: "شماره فر", render: (item) => item.kiln_number ? toPersianNumber(item.kiln_number) : "-" },
+    {
+      key: "process_number",
+      label: "شماره فرآیند",
+      render: (item) => toPersianNumber(item.process_number),
+    },
+    {
+      key: "capacity_bag_count",
+      label: "ظرفیت (کیسه)",
+      render: (item) => toPersianNumber(item.capacity_bag_count),
+    },
+    {
+      key: "fill_percentage",
+      label: "درصد پر شدن",
+      render: (item) => {
+        const pct = item.fill_percentage;
+        const color =
+          pct >= item.fill_percentage_required
+            ? "text-green-600"
+            : pct >= item.fill_percentage_required * 0.8
+              ? "text-yellow-600"
+              : "text-red-600";
+        return (
+          <span className={color}>
+            {toPersianNumber(pct)}٪ ({toPersianNumber(item.filled_bag_count)} کیسه)
+          </span>
+        );
+      },
+    },
+    {
+      key: "inputs",
+      label: "تعداد ورودی",
+      render: (item) => toPersianNumber(item.inputs.length),
+    },
     {
       key: "status",
       label: "وضعیت",
       render: (item) => {
-        const statusKey = item.status ?? "PENDING";
-        const s = statusLabels[statusKey] || { label: statusKey, variant: "default" as const };
+        const s = getProcessStatus(item);
         return <Badge variant={s.variant}>{s.label}</Badge>;
       },
     },
-    { key: "start_date", label: "تاریخ شروع", render: (item) => formatPersianDate(item.start_date) },
+    {
+      key: "process_date",
+      label: "تاریخ",
+      render: (item) => formatPersianDate(item.process_date),
+    },
+    {
+      key: "description",
+      label: "توضیحات",
+      render: (item) => item.description || "-",
+    },
   ];
 
   if (isLoading) return <LoadingSpinner className="min-h-[60vh]" size="lg" />;
 
   return (
     <PageShell
-      title="فرآیند فر"
-      description="مدیریت فرآیندهای تبدیل شالی"
+      title="فرآیندهای تولید"
+      description="مدیریت فرآیندهای تبدیل شالی به برنج"
       actions={
-        <Button onClick={openCreate}>
+        <Button onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4 ml-1" />
           فرآیند جدید
         </Button>
@@ -159,89 +150,66 @@ export default function ProcessesPage() {
         totalCount={data?.count}
         page={page}
         onPageChange={setPage}
-        searchable
-        searchPlaceholder="جستجوی فرآیند..."
-        onSearch={(term) => { setSearch(term); setPage(1); }}
-        onEdit={openEdit}
-        onDelete={handleDelete}
+        onEdit={(item) => router.push(`/dashboard/processes/${item.id}`)}
         emptyMessage="فرآیندی ثبت نشده است"
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
-            <DialogTitle>{selectedItem ? "ویرایش فرآیند" : "فرآیند جدید"}</DialogTitle>
+            <DialogTitle>فرآیند جدید</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <FormField label="شناسه ورودی شالی" required>
-              <Input
-                type="number"
-                value={formData.rice_input}
-                onChange={(e) => setFormData({ ...formData, rice_input: e.target.value })}
-              />
-            </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="شماره فر">
+              <FormField label="شماره فرآیند" required>
                 <Input
                   type="number"
-                  value={formData.kiln_number}
-                  onChange={(e) => setFormData({ ...formData, kiln_number: e.target.value })}
+                  value={createForm.process_number}
+                  onChange={(e) => setCreateForm({ ...createForm, process_number: e.target.value })}
                 />
               </FormField>
-              <FormField label="وضعیت" required>
-                <Select
-                  value={formData.status}
-                  onValueChange={(v) => setFormData({ ...formData, status: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING">در انتظار</SelectItem>
-                    <SelectItem value="IN_PROGRESS">در حال انجام</SelectItem>
-                    <SelectItem value="COMPLETED">تکمیل شده</SelectItem>
-                  </SelectContent>
-                </Select>
+              <FormField label="ظرفیت (کیسه)" required>
+                <Input
+                  type="number"
+                  value={createForm.capacity_bag_count}
+                  onChange={(e) => setCreateForm({ ...createForm, capacity_bag_count: e.target.value })}
+                />
               </FormField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="تاریخ شروع">
+              <FormField label="ساعت کار">
                 <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  type="number"
+                  value={createForm.hours_work}
+                  onChange={(e) => setCreateForm({ ...createForm, hours_work: e.target.value })}
                 />
               </FormField>
-              <FormField label="تاریخ پایان">
+              <FormField label="حداقل درصد پر شدن">
                 <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  type="number"
+                  value={createForm.fill_percentage_required}
+                  onChange={(e) => setCreateForm({ ...createForm, fill_percentage_required: e.target.value })}
                 />
               </FormField>
             </div>
             <FormField label="توضیحات">
               <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                value={createForm.description}
+                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
               />
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
-            <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
-              {selectedItem ? "ویرایش" : "ثبت"}
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              انصراف
+            </Button>
+            <Button onClick={handleCreate} disabled={createMutation.isPending}>
+              {createMutation.isPending ? "در حال ثبت..." : "ثبت فرآیند"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        isLoading={deleteMutation.isPending}
-      />
     </PageShell>
   );
 }

@@ -4,8 +4,10 @@ import { API_ENDPOINTS } from "@/lib/constants";
 import type {
   Customer,
   RiceInput,
+  RiceType,
   Process,
   Output,
+  DailyPrice,
   Sale,
   Purchase,
   CheckPayment,
@@ -78,6 +80,10 @@ export function useRiceInput(id?: number) {
   return useQuery(singleQuery<RiceInput>(API_ENDPOINTS.RICE_INPUTS, id));
 }
 
+export function useRiceTypes(filters?: Record<string, unknown>) {
+  return useQuery(paginatedQuery<RiceType>(API_ENDPOINTS.RICE_TYPES, filters));
+}
+
 export function useProcesses(filters?: Record<string, unknown>) {
   return useQuery(paginatedQuery<Process>(API_ENDPOINTS.PROCESSES, filters));
 }
@@ -92,6 +98,14 @@ export function useOutputs(filters?: Record<string, unknown>) {
 
 export function useOutput(id?: number) {
   return useQuery(singleQuery<Output>(API_ENDPOINTS.OUTPUTS, id));
+}
+
+export function useDailyPrices(filters?: Record<string, unknown>) {
+  return useQuery(paginatedQuery<DailyPrice>(API_ENDPOINTS.DAILY_PRICES, filters));
+}
+
+export function useDailyPrice(id?: number) {
+  return useQuery(singleQuery<DailyPrice>(API_ENDPOINTS.DAILY_PRICES, id));
 }
 
 export function useSales(productType?: string, filters?: Record<string, unknown>) {
@@ -255,6 +269,58 @@ export function useDeleteMutation(url: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [url] });
+    },
+  });
+}
+
+export function useProcessAddInput() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
+      const response = await apiClient.post(`${API_ENDPOINTS.PROCESSES}${id}/inputs/`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+    },
+  });
+}
+
+export function useProcessRemoveInput() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ processId, inputId }: { processId: number; inputId: number }) => {
+      const response = await apiClient.delete(`${API_ENDPOINTS.PROCESSES}${processId}/inputs/${inputId}/`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+    },
+  });
+}
+
+export function useProcessStart() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiClient.put(`${API_ENDPOINTS.PROCESSES}${id}/start/`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+    },
+  });
+}
+
+export function useProcessComplete() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiClient.put(`${API_ENDPOINTS.PROCESSES}${id}/complete/`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
     },
   });
 }

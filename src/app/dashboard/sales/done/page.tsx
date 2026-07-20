@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import { CustomerSearch } from "@/components/shared/CustomerSearch";
 import { useSales, useInventory, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS, ProductType } from "@/lib/constants";
@@ -45,7 +47,7 @@ export default function SalesDonePage() {
     customer: null as Customer | null,
     weight: "",
     price_per_unit: "",
-    sale_date: new Date().toISOString().split("T")[0],
+    sale_date: getTodayJalaliIso(),
     description: "",
   });
 
@@ -56,7 +58,7 @@ export default function SalesDonePage() {
       customer: null,
       weight: "",
       price_per_unit: "",
-      sale_date: new Date().toISOString().split("T")[0],
+      sale_date: getTodayJalaliIso(),
       description: "",
     });
     setSelectedItem(null);
@@ -169,9 +171,11 @@ export default function SalesDonePage() {
               <span className="text-sm text-muted-foreground">مبلغ کل: </span>
               <span className="text-lg font-bold">{toPersianCurrency(totalAmount)}</span>
             </div>
-            <FormField label="تاریخ فروش">
-              <Input type="date" value={formData.sale_date} onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })} />
-            </FormField>
+            <PersianDatePicker
+              label="تاریخ فروش"
+              value={formData.sale_date}
+              onChange={(v) => setFormData({ ...formData, sale_date: v })}
+            />
             <FormField label="توضیحات">
               <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
             </FormField>

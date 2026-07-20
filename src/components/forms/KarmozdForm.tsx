@@ -77,7 +77,7 @@ export function KarmozdForm({ initialData, onSubmit, isLoading }: KarmozdFormPro
           <SelectContent>
             {processesData?.results?.map((process) => (
               <SelectItem key={process.id} value={String(process.id)}>
-                {process.customer_name} - {process.rice_type_name}
+                فرآیند {process.process_number} - {process.filled_bag_count} کیسه
               </SelectItem>
             ))}
           </SelectContent>

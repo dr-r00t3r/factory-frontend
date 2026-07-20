@@ -19,6 +19,8 @@ import {
 import { useExpenses, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, toPersianCurrency, formatPersianDate } from "@/lib/utils";
+import { getTodayJalaliIso } from "@/lib/jalali";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { Plus } from "lucide-react";
 import type { Expense } from "@/types";
 
@@ -33,9 +35,9 @@ export default function ExpensesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Expense | null>(null);
   const [formData, setFormData] = useState({
-    title: "", amount: "", category: "", expense_date: new Date().toISOString().split("T")[0], description: "",
+    title: "", amount: "", category: "", expense_date: getTodayJalaliIso(), description: "",
   });
-  const resetForm = () => { setFormData({ title: "", amount: "", category: "", expense_date: new Date().toISOString().split("T")[0], description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ title: "", amount: "", category: "", expense_date: getTodayJalaliIso(), description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Expense) => {
     setSelectedItem(item);
@@ -101,7 +103,7 @@ export default function ExpensesPage() {
                 </Select>
               </FormField>
             </div>
-            <FormField label="تاریخ هزینه"><Input type="date" value={formData.expense_date} onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })} /></FormField>
+            <PersianDatePicker label="تاریخ هزینه" value={formData.expense_date} onChange={(v) => setFormData({ ...formData, expense_date: v })} />
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>
           <DialogFooter>

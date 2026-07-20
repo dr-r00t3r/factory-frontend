@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
 import { CustomerSearch } from "@/components/shared/CustomerSearch";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
 import { useSales, useInventory, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS, ProductType } from "@/lib/constants";
 import { toPersianNumber, toPersianCurrency, formatPersianDate } from "@/lib/utils";
@@ -37,10 +39,10 @@ export default function SalesSabosNarmPage() {
   const [selectedItem, setSelectedItem] = useState<Sale | null>(null);
   const [formData, setFormData] = useState({
     customer: null as Customer | null, weight: "", price_per_unit: "",
-    sale_date: new Date().toISOString().split("T")[0], description: "",
+    sale_date: getTodayJalaliIso(), description: "",
   });
   const totalAmount = parseFloat(formData.weight || "0") * parseFloat(formData.price_per_unit || "0");
-  const resetForm = () => { setFormData({ customer: null, weight: "", price_per_unit: "", sale_date: new Date().toISOString().split("T")[0], description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ customer: null, weight: "", price_per_unit: "", sale_date: getTodayJalaliIso(), description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: Sale) => {
     setSelectedItem(item);
@@ -102,7 +104,7 @@ export default function SalesSabosNarmPage() {
               <span className="text-sm text-muted-foreground">مبلغ کل: </span>
               <span className="text-lg font-bold">{toPersianCurrency(totalAmount)}</span>
             </div>
-            <FormField label="تاریخ فروش"><Input type="date" value={formData.sale_date} onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })} /></FormField>
+            <PersianDatePicker label="تاریخ فروش" value={formData.sale_date} onChange={(v) => setFormData({ ...formData, sale_date: v })} />
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>
           <DialogFooter>

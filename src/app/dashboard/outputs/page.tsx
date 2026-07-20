@@ -14,19 +14,38 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/shared/FormField";
-import { RiceTypeSelect } from "@/components/shared/RiceTypeSelect";
-import { useOutputs, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
+import { CustomerSearch } from "@/components/shared/CustomerSearch";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
+import { getTodayJalaliIso } from "@/lib/jalali";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useOutputs,
+  useProcesses,
+  useRiceTypes,
+  useCreateMutation,
+  useUpdateMutation,
+  useDeleteMutation,
+} from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, formatPersianDate } from "@/lib/utils";
 import { Plus } from "lucide-react";
-import type { Output } from "@/types";
+import type { Output, Customer } from "@/types";
+
+function formatPrice(n?: number | null) {
+  if (n == null) return "-";
+  return toPersianNumber(n) + " ریال";
+}
 
 export default function OutputsPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const { data, isLoading } = useOutputs({ page, search, page_size: 10 });
+  const { data, isLoading } = useOutputs({ page, page_size: 20 });
   const createMutation = useCreateMutation(API_ENDPOINTS.OUTPUTS);
   const updateMutation = useUpdateMutation(API_ENDPOINTS.OUTPUTS);
   const deleteMutation = useDeleteMutation(API_ENDPOINTS.OUTPUTS);
@@ -34,22 +53,28 @@ export default function OutputsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Output | null>(null);
-  const [formData, setFormData] = useState({
-    process: "",
-    rice_type: "",
-    weight: "",
-    output_date: new Date().toISOString().split("T")[0],
-    description: "",
-  });
+
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [processId, setProcessId] = useState("");
+  const [riceTypeId, setRiceTypeId] = useState("");
+  const [outputDate, setOutputDate] = useState("");
+  const [sabosNarmWeight, setSabosNarmWeight] = useState("");
+  const [sabosDoWeight, setSabosDoWeight] = useState("");
+  const [nimdoneWeight, setNimdoneWeight] = useState("");
+  const [doneWeight, setDoneWeight] = useState("");
+
+  const { data: processesData } = useProcesses({ page_size: 200 });
+  const { data: riceTypesData } = useRiceTypes();
 
   const resetForm = () => {
-    setFormData({
-      process: "",
-      rice_type: "",
-      weight: "",
-      output_date: new Date().toISOString().split("T")[0],
-      description: "",
-    });
+    setCustomer(null);
+    setProcessId("");
+    setRiceTypeId("");
+    setOutputDate(getTodayJalaliIso());
+    setSabosNarmWeight("");
+    setSabosDoWeight("");
+    setNimdoneWeight("");
+    setDoneWeight("");
     setSelectedItem(null);
   };
 
@@ -60,13 +85,13 @@ export default function OutputsPage() {
 
   const openEdit = (item: Output) => {
     setSelectedItem(item);
-    setFormData({
-      process: String(item.process_id),
-      rice_type: item.rice_type_name || "",
-      weight: String(item.weight),
-      output_date: item.output_date?.split("T")[0] || "",
-      description: item.description || "",
-    });
+    setProcessId(String(item.process_id || ""));
+    setRiceTypeId(String(item.rice_type_id || ""));
+    setOutputDate(item.output_date?.split("T")[0] || "");
+    setSabosNarmWeight(String(item.sabos_narm_weight || ""));
+    setSabosDoWeight(String(item.sabos_do_weight || ""));
+    setNimdoneWeight(String(item.nimdone_weight || ""));
+    setDoneWeight(String(item.done_weight || ""));
     setDialogOpen(true);
   };
 
@@ -84,12 +109,18 @@ export default function OutputsPage() {
   };
 
   const handleSubmit = () => {
+    if (!customer) return;
+
     const payload: Record<string, unknown> = {
-      process_id: parseInt(formData.process),
-      weight: parseFloat(formData.weight),
-      output_date: formData.output_date,
-      description: formData.description || undefined,
+      customer_id: customer.id,
+      output_date: outputDate,
+      sabos_narm_weight: parseInt(sabosNarmWeight) || 0,
+      sabos_do_weight: parseInt(sabosDoWeight) || 0,
+      nimdone_weight: parseInt(nimdoneWeight) || 0,
+      done_weight: parseInt(doneWeight) || 0,
     };
+    if (processId) payload.process_id = parseInt(processId);
+    if (riceTypeId) payload.rice_type_id = parseInt(riceTypeId);
 
     if (selectedItem) {
       updateMutation.mutate(
@@ -104,12 +135,74 @@ export default function OutputsPage() {
   };
 
   const columns: Column<Output>[] = [
-    { key: "customer_name", label: "مشتری", render: (item) => item.customer_name || "-" },
-    { key: "process_info", label: "فرآیند", render: (item) => item.process_info || `#${item.process_id}` },
-    { key: "weight", label: "وزن (کیلو)", render: (item) => toPersianNumber(item.weight) },
-    { key: "rice_type_name", label: "نوع محصول", render: (item) => item.rice_type_name || "-" },
-    { key: "output_date", label: "تاریخ", render: (item) => formatPersianDate(item.output_date) },
-    { key: "description", label: "توضیحات", render: (item) => item.description || "-" },
+    {
+      key: "customer_name",
+      label: "مشتری",
+      render: (item) => item.customer_name || "-",
+    },
+    {
+      key: "process_id",
+      label: "فرآیند",
+      render: (item) => item.process_id ? `#${toPersianNumber(item.process_id)}` : "-",
+    },
+    {
+      key: "rice_type_name",
+      label: "نوع شالی",
+      render: (item) => item.rice_type_name || "-",
+    },
+    {
+      key: "output_date",
+      label: "تاریخ",
+      render: (item) => formatPersianDate(item.output_date),
+    },
+    {
+      key: "sabos_narm_weight",
+      label: "سبوس نرم",
+      render: (item) => (
+        <div className="text-sm">
+          <div>{toPersianNumber(item.sabos_narm_weight)} کیلو</div>
+          {item.sabos_narm_total != null && (
+            <div className="text-muted-foreground text-xs">{formatPrice(item.sabos_narm_total)}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "sabos_do_weight",
+      label: "سبوس دو",
+      render: (item) => (
+        <div className="text-sm">
+          <div>{toPersianNumber(item.sabos_do_weight)} کیلو</div>
+          {item.sabos_do_total != null && (
+            <div className="text-muted-foreground text-xs">{formatPrice(item.sabos_do_total)}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "nimdone_weight",
+      label: "نیمدونه",
+      render: (item) => (
+        <div className="text-sm">
+          <div>{toPersianNumber(item.nimdone_weight)} کیلو</div>
+          {item.nimdone_total != null && (
+            <div className="text-muted-foreground text-xs">{formatPrice(item.nimdone_total)}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "done_weight",
+      label: "دونه",
+      render: (item) => (
+        <div className="text-sm">
+          <div>{toPersianNumber(item.done_weight)} کیلو</div>
+          {item.done_total != null && (
+            <div className="text-muted-foreground text-xs">{formatPrice(item.done_total)}</div>
+          )}
+        </div>
+      ),
+    },
   ];
 
   if (isLoading) return <LoadingSpinner className="min-h-[60vh]" size="lg" />;
@@ -131,59 +224,101 @@ export default function OutputsPage() {
         totalCount={data?.count}
         page={page}
         onPageChange={setPage}
-        searchable
-        searchPlaceholder="جستجوی خروجی..."
-        onSearch={(term) => { setSearch(term); setPage(1); }}
         onEdit={openEdit}
         onDelete={handleDelete}
         emptyMessage="خروجی‌ای ثبت نشده است"
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>{selectedItem ? "ویرایش خروجی" : "خروجی جدید"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <FormField label="شناسه فرآیند" required>
-              <Input
-                type="number"
-                value={formData.process}
-                onChange={(e) => setFormData({ ...formData, process: e.target.value })}
+            <FormField label="مشتری" required>
+              <CustomerSearch
+                value={customer}
+                onChange={(c) => {
+                  setCustomer(c);
+                  setProcessId("");
+                }}
               />
             </FormField>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="نوع محصول" required>
-                <RiceTypeSelect
-                  value={formData.rice_type}
-                  onChange={(v) => setFormData({ ...formData, rice_type: v })}
-                />
-              </FormField>
-              <FormField label="وزن (کیلو)" required>
-                <Input
-                  type="number"
-                  value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                />
+
+            <FormField label="فرآیند (اختیاری)">
+              <Select
+                value={processId}
+                onValueChange={setProcessId}
+                disabled={!customer}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={customer ? "انتخاب فرآیند" : "ابتدا مشتری را انتخاب کنید"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {processesData?.results?.filter((p) => p.is_completed).map((process) => (
+                    <SelectItem key={process.id} value={String(process.id)}>
+                      فرآیند {toPersianNumber(process.process_number)} | {process.filled_bag_count}/{toPersianNumber(process.capacity_bag_count)} کیسه | {toPersianNumber(process.fill_percentage)}٪ | {formatPersianDate(process.process_date)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <FormField label="نوع شالی (اختیاری - برای نرخ‌گذاری)">
+              <Select value={riceTypeId} onValueChange={setRiceTypeId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="انتخاب نوع شالی" />
+                </SelectTrigger>
+                <SelectContent>
+                  {riceTypesData?.results?.map((rt) => (
+                    <SelectItem key={rt.id} value={String(rt.id)}>
+                      {rt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <PersianDatePicker
+              label="تاریخ خروجی"
+              value={outputDate}
+              onChange={setOutputDate}
+              required
+            />
+
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="font-medium">سبوس نرم</h3>
+              <FormField label="وزن (کیلوگرم)">
+                <Input type="number" value={sabosNarmWeight} onChange={(e) => setSabosNarmWeight(e.target.value)} />
               </FormField>
             </div>
-            <FormField label="تاریخ خروجی">
-              <Input
-                type="date"
-                value={formData.output_date}
-                onChange={(e) => setFormData({ ...formData, output_date: e.target.value })}
-              />
+
+            <FormField label="وزن سبوس دو (کیلوگرم)">
+              <Input type="number" value={sabosDoWeight} onChange={(e) => setSabosDoWeight(e.target.value)} />
             </FormField>
-            <FormField label="توضیحات">
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </FormField>
+
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="font-medium">نیمدونه</h3>
+              <FormField label="وزن (کیلوگرم)">
+                <Input type="number" value={nimdoneWeight} onChange={(e) => setNimdoneWeight(e.target.value)} />
+              </FormField>
+            </div>
+
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="font-medium">دونه</h3>
+              <FormField label="وزن (کیلوگرم)">
+                <Input type="number" value={doneWeight} onChange={(e) => setDoneWeight(e.target.value)} />
+              </FormField>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
-            <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              انصراف
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
               {selectedItem ? "ویرایش" : "ثبت"}
             </Button>
           </DialogFooter>

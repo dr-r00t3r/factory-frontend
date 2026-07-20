@@ -15,6 +15,8 @@ import { FormField } from "@/components/shared/FormField";
 import { useMiscReceipts, useCreateMutation, useUpdateMutation, useDeleteMutation } from "@/hooks";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { toPersianNumber, toPersianCurrency, formatPersianDate } from "@/lib/utils";
+import { getTodayJalaliIso } from "@/lib/jalali";
+import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { Plus } from "lucide-react";
 import type { MiscReceipt } from "@/types";
 
@@ -29,9 +31,9 @@ export default function MiscReceiptsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MiscReceipt | null>(null);
   const [formData, setFormData] = useState({
-    title: "", amount: "", receipt_date: new Date().toISOString().split("T")[0], description: "",
+    title: "", amount: "", receipt_date: getTodayJalaliIso(), description: "",
   });
-  const resetForm = () => { setFormData({ title: "", amount: "", receipt_date: new Date().toISOString().split("T")[0], description: "" }); setSelectedItem(null); };
+  const resetForm = () => { setFormData({ title: "", amount: "", receipt_date: getTodayJalaliIso(), description: "" }); setSelectedItem(null); };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
   const openEdit = (item: MiscReceipt) => {
     setSelectedItem(item);
@@ -80,7 +82,7 @@ export default function MiscReceiptsPage() {
           <div className="grid gap-4 py-4">
             <FormField label="عنوان" required><Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} /></FormField>
             <FormField label="مبلغ (ریال)" required><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} /></FormField>
-            <FormField label="تاریخ"><Input type="date" value={formData.receipt_date} onChange={(e) => setFormData({ ...formData, receipt_date: e.target.value })} /></FormField>
+            <PersianDatePicker label="تاریخ" value={formData.receipt_date} onChange={(v) => setFormData({ ...formData, receipt_date: v })} />
             <FormField label="توضیحات"><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></FormField>
           </div>
           <DialogFooter>
