@@ -53,9 +53,19 @@ export interface RiceInput {
   created_at?: string;
 }
 
+export interface ProcessLine {
+  id: number;
+  process_number: number;
+  capacity_bag_count: number;
+  hours_work?: number;
+  fill_percentage_required: number;
+  description?: string;
+  created_at?: string;
+}
+
 export interface ProcessInput {
   id: number;
-  process_id: number;
+  session_id: number;
   rice_input_id: number;
   customer_id: number;
   customer_name?: string;
@@ -64,18 +74,19 @@ export interface ProcessInput {
   created_at?: string;
 }
 
-export interface Process {
+export interface ProcessSession {
   id: number;
-  process_number: number;
-  capacity_bag_count: number;
+  process_line_id: number;
+  process_number?: number;
+  capacity_bag_count?: number;
   hours_work?: number;
+  fill_percentage_required?: number;
   actual_hours_work?: number;
-  fill_percentage_required: number;
   filled_bag_count: number;
   fill_percentage: number;
   is_started: boolean;
   is_completed: boolean;
-  process_date?: string;
+  session_date?: string;
   description?: string;
   inputs: ProcessInput[];
   created_at?: string;
@@ -84,7 +95,7 @@ export interface Process {
 export interface Output {
   id: number;
   customer_id: number;
-  process_id?: number;
+  session_id?: number;
   rice_type_id?: number;
   rice_type_name?: string;
   output_date: string;
@@ -117,10 +128,9 @@ export interface DailyPrice {
 export interface CustomerPayment {
   id: number;
   customer_id: number;
-  process_id?: number;
+  session_id?: number;
   payment_date: string;
   cash_amount: number;
-  card_amount: number;
   discount: number;
   credit_amount: number;
   debt_amount: number;

@@ -6,7 +6,7 @@ import { StatsCard } from "@/components/shared/StatsCard";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { useRiceInputs, useProcesses, useInventory, useFinancialSummary } from "@/hooks";
+import { useRiceInputs, useProcessSessions, useInventory, useFinancialSummary } from "@/hooks";
 import { toPersianNumber, toPersianCurrency } from "@/lib/utils";
 import {
   Rice,
@@ -35,13 +35,13 @@ const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function DashboardPage() {
   const { data: riceInputsData, isLoading: loadingInputs } = useRiceInputs({ page_size: 5 });
-  const { data: processesData, isLoading: loadingProcesses } = useProcesses({ page_size: 5 });
+  const { data: sessionsData, isLoading: loadingSessions } = useProcessSessions({ page_size: 5 });
   const { data: inventory, isLoading: loadingInventory } = useInventory();
   const { data: financialSummary, isLoading: loadingFinance } = useFinancialSummary();
 
   const todayInputs = riceInputsData?.results?.length || 0;
-  const pendingProcesses = processesData?.results?.filter(
-    (p) => !p.is_completed
+  const pendingProcesses = sessionsData?.results?.filter(
+    (p: { is_completed: boolean }) => !p.is_completed
   ).length || 0;
 
   const inventoryChartData = inventory?.map((item) => ({
@@ -62,7 +62,7 @@ export default function DashboardPage() {
     { title: "موجودی انبار", href: "/dashboard/inventory", icon: <Warehouse className="h-4 w-4" /> },
   ];
 
-  if (loadingInputs && loadingProcesses && loadingInventory && loadingFinance) {
+  if (loadingInputs && loadingSessions && loadingInventory && loadingFinance) {
     return <LoadingSpinner className="min-h-[60vh]" size="lg" />;
   }
 

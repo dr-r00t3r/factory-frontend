@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
   RICE_TYPES: "/api/rice-types/",
   RICE_INPUTS: "/api/rice-inputs/",
   PROCESSES: "/api/processes/",
+  PROCESS_LINES: "/api/processes/lines/",
+  PROCESS_SESSIONS: "/api/processes/sessions/",
   OUTPUTS: "/api/outputs/",
   DAILY_PRICES: "/api/daily-prices/",
   SALES: "/api/sales/",
@@ -84,7 +86,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: "Package",
     children: [
       { title: "ورودی شالی", href: "/dashboard/rice-inputs", icon: "ArrowDownToLine" },
-      { title: "فرآیند فر", href: "/dashboard/processes", icon: "Factory" },
+      { title: "جلسات فرآیند", href: "/dashboard/sessions", icon: "Factory" },
       { title: "خروجی تبدیل", href: "/dashboard/outputs", icon: "ArrowUpFromLine" },
       { title: "نرخ روزانه محصولات", href: "/dashboard/daily-prices", icon: "Tag" },
     ],

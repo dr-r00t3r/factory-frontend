@@ -90,7 +90,7 @@ export default function CustomerPaymentsPage() {
     setFormData({
       customer: item.customer_name && item.customer_id ? { id: item.customer_id, name: item.customer_name, phone: "", customer_type: "farmer", created_at: "", updated_at: "" } : null,
       amount: String(item.total_paid ?? item.cash_amount ?? 0), payment_date: item.payment_date?.split("T")[0] || "",
-      payment_type: item.card_amount && item.card_amount > 0 ? "CARD" : "CASH", description: item.description || "",
+      payment_type: "CASH", description: item.description || "",
     });
     setDialogOpen(true);
   };

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import {
   useOutputs,
-  useProcesses,
+  useProcessSessions,
   useRiceTypes,
   useCreateMutation,
   useUpdateMutation,
@@ -55,7 +55,7 @@ export default function OutputsPage() {
   const [selectedItem, setSelectedItem] = useState<Output | null>(null);
 
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [processId, setProcessId] = useState("");
+  const [sessionId, setSessionId] = useState("");
   const [riceTypeId, setRiceTypeId] = useState("");
   const [outputDate, setOutputDate] = useState("");
   const [sabosNarmWeight, setSabosNarmWeight] = useState("");
@@ -63,12 +63,12 @@ export default function OutputsPage() {
   const [nimdoneWeight, setNimdoneWeight] = useState("");
   const [doneWeight, setDoneWeight] = useState("");
 
-  const { data: processesData } = useProcesses({ page_size: 200 });
+  const { data: sessionsData } = useProcessSessions({ page_size: 200 });
   const { data: riceTypesData } = useRiceTypes();
 
   const resetForm = () => {
     setCustomer(null);
-    setProcessId("");
+    setSessionId("");
     setRiceTypeId("");
     setOutputDate(getTodayJalaliIso());
     setSabosNarmWeight("");
@@ -85,7 +85,7 @@ export default function OutputsPage() {
 
   const openEdit = (item: Output) => {
     setSelectedItem(item);
-    setProcessId(String(item.process_id || ""));
+    setSessionId(String(item.session_id || ""));
     setRiceTypeId(String(item.rice_type_id || ""));
     setOutputDate(item.output_date?.split("T")[0] || "");
     setSabosNarmWeight(String(item.sabos_narm_weight || ""));
@@ -119,7 +119,7 @@ export default function OutputsPage() {
       nimdone_weight: parseInt(nimdoneWeight) || 0,
       done_weight: parseInt(doneWeight) || 0,
     };
-    if (processId) payload.process_id = parseInt(processId);
+    if (sessionId) payload.session_id = parseInt(sessionId);
     if (riceTypeId) payload.rice_type_id = parseInt(riceTypeId);
 
     if (selectedItem) {
@@ -141,9 +141,9 @@ export default function OutputsPage() {
       render: (item) => item.customer_name || "-",
     },
     {
-      key: "process_id",
-      label: "فرآیند",
-      render: (item) => item.process_id ? `#${toPersianNumber(item.process_id)}` : "-",
+      key: "session_id",
+      label: "نشست",
+      render: (item) => item.session_id ? `#${toPersianNumber(item.session_id)}` : "-",
     },
     {
       key: "rice_type_name",
@@ -240,24 +240,24 @@ export default function OutputsPage() {
                 value={customer}
                 onChange={(c) => {
                   setCustomer(c);
-                  setProcessId("");
+                  setSessionId("");
                 }}
               />
             </FormField>
 
-            <FormField label="فرآیند (اختیاری)">
+            <FormField label="نشست فرآیند (اختیاری)">
               <Select
-                value={processId}
-                onValueChange={setProcessId}
+                value={sessionId}
+                onValueChange={setSessionId}
                 disabled={!customer}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={customer ? "انتخاب فرآیند" : "ابتدا مشتری را انتخاب کنید"} />
+                  <SelectValue placeholder={customer ? "انتخاب نشست" : "ابتدا مشتری را انتخاب کنید"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {processesData?.results?.filter((p) => p.is_completed).map((process) => (
-                    <SelectItem key={process.id} value={String(process.id)}>
-                      فرآیند {toPersianNumber(process.process_number)} | {process.filled_bag_count}/{toPersianNumber(process.capacity_bag_count)} کیسه | {toPersianNumber(process.fill_percentage)}٪ | {formatPersianDate(process.process_date)}
+                  {sessionsData?.results?.filter((p: { is_completed: boolean }) => p.is_completed).map((session: { id: number; process_number?: number; filled_bag_count: number; capacity_bag_count?: number; fill_percentage: number; session_date?: string }) => (
+                    <SelectItem key={session.id} value={String(session.id)}>
+                      خط {toPersianNumber(session.process_number)} | {session.filled_bag_count}/{toPersianNumber(session.capacity_bag_count)} کیسه | {toPersianNumber(session.fill_percentage)}٪ | {formatPersianDate(session.session_date)}
                     </SelectItem>
                   ))}
                 </SelectContent>

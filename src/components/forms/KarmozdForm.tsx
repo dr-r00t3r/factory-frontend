@@ -11,10 +11,10 @@ import { FormField } from "@/components/shared/FormField";
 import { PersianDatePicker } from "@/components/shared/PersianDatePicker";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useProcesses, useChecks } from "@/hooks";
+import { useProcessSessions, useChecks } from "@/hooks";
 
 const schema = z.object({
-  process_id: z.string({ required_error: "فرآیند را انتخاب کنید" }),
+  session_id: z.string({ required_error: "نشست فرآیند را انتخاب کنید" }),
   payment_date: z.string().min(1, "تاریخ را وارد کنید"),
   cash_amount: z.string().optional(),
   card_amount: z.string().optional(),
@@ -33,7 +33,7 @@ interface KarmozdFormProps {
 
 export function KarmozdForm({ initialData, onSubmit, isLoading }: KarmozdFormProps) {
   const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
-  const { data: processesData } = useProcesses({ page_size: 100 });
+  const { data: sessionsData } = useProcessSessions({ page_size: 100 });
   const { data: checksData } = useChecks({ page_size: 100 });
 
   const {
@@ -66,18 +66,18 @@ export function KarmozdForm({ initialData, onSubmit, isLoading }: KarmozdFormPro
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-      <FormField label="فرآیند" error={errors.process_id?.message} required>
+      <FormField label="نشست فرآیند" error={errors.session_id?.message} required>
         <Select
-          value={initialData?.process_id}
-          onValueChange={(v) => setValue("process_id", v)}
+          value={initialData?.session_id}
+          onValueChange={(v) => setValue("session_id", v)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="انتخاب فرآیند" />
+            <SelectValue placeholder="انتخاب نشست" />
           </SelectTrigger>
           <SelectContent>
-            {processesData?.results?.map((process) => (
-              <SelectItem key={process.id} value={String(process.id)}>
-                فرآیند {process.process_number} - {process.filled_bag_count} کیسه
+            {sessionsData?.results?.map((session: { id: number; process_number?: number; filled_bag_count: number }) => (
+              <SelectItem key={session.id} value={String(session.id)}>
+                خط {session.process_number} - {session.filled_bag_count} کیسه
               </SelectItem>
             ))}
           </SelectContent>

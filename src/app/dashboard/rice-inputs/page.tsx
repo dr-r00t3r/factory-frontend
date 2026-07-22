@@ -108,7 +108,7 @@ export default function RiceInputsPage() {
     const payload: Record<string, unknown> = {
       rice_type_id: formData.rice_type ? parseInt(formData.rice_type) : undefined,
       weight_kg: formData.weight ? parseFloat(formData.weight) : undefined,
-      bag_count: formData.bag_count ? parseInt(formData.bag_count) : undefined,
+      bag_count: formData.bag_count ? parseFloat(formData.bag_count) : undefined,
       input_date: formData.input_date,
       description: formData.description || undefined,
     };

@@ -4,29 +4,32 @@ import React from "react";
 import Link from "next/link";
 import { PageShell } from "@/components/layout/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
-import { Percent, Factory, Rice } from "@/lib/icons";
+import { Percent, Factory, Rice, Cog } from "@/lib/icons";
 
 const settingsCards = [
   {
     title: "نرخ‌های سالانه",
     description: "تنظیم تعرفه کارمزد و نرخ‌های کشاورزی/تجاری",
-    // href: "/settings/yearly-fees",
     href: "/dashboard/settings/yearly-fees",
     icon: <Percent className="h-5 w-5" />,
   },
   {
     title: "اطلاعات کارخانه",
     description: "نام و سربرگ کارخانه برای گزارش‌ها",
-    // href: "/settings/factory-info",
     href: "/dashboard/settings/factory-info",
     icon: <Factory className="h-5 w-5" />,
   },
   {
     title: "انواع برنج",
     description: "مدیریت انواع و اقلام برنج",
-    // href: "/settings/rice-types",
     href: "/dashboard/settings/rice-types",
     icon: <Rice className="h-5 w-5" />,
+  },
+  {
+    title: "خطوط فرآیند",
+    description: "تعریف خطوط فرآیند تولید (ظرفیت، ساعت کار، درصد پر شدن)",
+    href: "/dashboard/settings/process-lines",
+    icon: <Cog className="h-5 w-5" />,
   },
 ];
 

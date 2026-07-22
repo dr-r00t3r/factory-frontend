@@ -5,7 +5,8 @@ import type {
   Customer,
   RiceInput,
   RiceType,
-  Process,
+  ProcessLine,
+  ProcessSession,
   Output,
   DailyPrice,
   Sale,
@@ -84,12 +85,20 @@ export function useRiceTypes(filters?: Record<string, unknown>) {
   return useQuery(paginatedQuery<RiceType>(API_ENDPOINTS.RICE_TYPES, filters));
 }
 
-export function useProcesses(filters?: Record<string, unknown>) {
-  return useQuery(paginatedQuery<Process>(API_ENDPOINTS.PROCESSES, filters));
+export function useProcessLines(filters?: Record<string, unknown>) {
+  return useQuery(paginatedQuery<ProcessLine>(API_ENDPOINTS.PROCESS_LINES, filters));
 }
 
-export function useProcess(id?: number) {
-  return useQuery(singleQuery<Process>(API_ENDPOINTS.PROCESSES, id));
+export function useProcessLine(id?: number) {
+  return useQuery(singleQuery<ProcessLine>(API_ENDPOINTS.PROCESS_LINES, id));
+}
+
+export function useProcessSessions(filters?: Record<string, unknown>) {
+  return useQuery(paginatedQuery<ProcessSession>(API_ENDPOINTS.PROCESS_SESSIONS, filters));
+}
+
+export function useProcessSession(id?: number) {
+  return useQuery(singleQuery<ProcessSession>(API_ENDPOINTS.PROCESS_SESSIONS, id));
 }
 
 export function useOutputs(filters?: Record<string, unknown>) {
@@ -273,54 +282,54 @@ export function useDeleteMutation(url: string) {
   });
 }
 
-export function useProcessAddInput() {
+export function useProcessSessionAddInput() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
-      const response = await apiClient.post(`${API_ENDPOINTS.PROCESSES}${id}/inputs/`, data);
+      const response = await apiClient.post(`${API_ENDPOINTS.PROCESS_SESSIONS}${id}/inputs/`, data);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESS_SESSIONS] });
     },
   });
 }
 
-export function useProcessRemoveInput() {
+export function useProcessSessionRemoveInput() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ processId, inputId }: { processId: number; inputId: number }) => {
-      const response = await apiClient.delete(`${API_ENDPOINTS.PROCESSES}${processId}/inputs/${inputId}/`);
+    mutationFn: async ({ sessionId, inputId }: { sessionId: number; inputId: number }) => {
+      const response = await apiClient.delete(`${API_ENDPOINTS.PROCESS_SESSIONS}${sessionId}/inputs/${inputId}/`);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESS_SESSIONS] });
     },
   });
 }
 
-export function useProcessStart() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiClient.put(`${API_ENDPOINTS.PROCESSES}${id}/start/`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
-    },
-  });
-}
-
-export function useProcessComplete() {
+export function useProcessSessionStart() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiClient.put(`${API_ENDPOINTS.PROCESSES}${id}/complete/`);
+      const response = await apiClient.put(`${API_ENDPOINTS.PROCESS_SESSIONS}${id}/start/`);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESSES] });
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESS_SESSIONS] });
+    },
+  });
+}
+
+export function useProcessSessionComplete() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiClient.put(`${API_ENDPOINTS.PROCESS_SESSIONS}${id}/complete/`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.PROCESS_SESSIONS] });
     },
   });
 }
